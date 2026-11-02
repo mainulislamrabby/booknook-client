@@ -1,12 +1,7 @@
-
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  ArrowRight,
-  BookOpen,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, BookOpen, Sparkles } from "lucide-react";
 
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -22,6 +17,7 @@ const slides = [
   {
     id: 1,
     subtitle: "WELCOME TO BOOKNOOK",
+    image: "/images/book_cover_1.jpg",
     title: "Discover Your Next Favorite Book",
     description:
       "Explore thousands of amazing books and find stories that inspire, entertain, and expand your imagination.",
@@ -29,6 +25,7 @@ const slides = [
   {
     id: 2,
     subtitle: "YOUR READING JOURNEY",
+    image: "/images/book_cover_2.jpg",
     title: "Every Book Opens a New World",
     description:
       "From exciting adventures to inspiring stories, discover something new on every page.",
@@ -36,6 +33,7 @@ const slides = [
   {
     id: 3,
     subtitle: "READ MORE, EXPLORE MORE",
+    image: "/images/book_cover_3.jpg",
     title: "A World of Knowledge Awaits You",
     description:
       "Find your favorite reads, explore different genres, and make reading a part of your everyday life.",
@@ -62,16 +60,24 @@ const Banner = () => {
         {slides.map((slide) => (
           <SwiperSlide key={slide.id}>
             <Card className="relative min-h-105 overflow-hidden rounded-2xl border-0 bg-green-800 text-white shadow-lg md:min-h-120">
+              {/* Background Cover Image */}
+              <div
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                style={{
+                  backgroundImage: `url('${slide.image}')`,
+                }}
+              />
+
+              {/* Dark Green Overlay */}
+              <div className="absolute inset-0 bg-green-950/75" />
 
               {/* Background Decorations */}
-              <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-green-700 opacity-60" />
+              <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-green-700 opacity-40" />
 
-              <div className="absolute -bottom-32 -right-5 h-80 w-80 rounded-full border-35 border-green-700 opacity-50" />
+              <div className="absolute -bottom-32 -right-5 h-80 w-80 rounded-full border-35 border-green-700 opacity-30" />
 
               <CardContent className="relative z-10 flex min-h-105 items-center p-8 md:min-h-120 md:px-16">
-
                 <div className="max-w-2xl">
-
                   {/* Subtitle */}
                   <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold tracking-wider text-green-100">
                     <Sparkles size={17} />
@@ -96,7 +102,6 @@ const Banner = () => {
                     Browse Books
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-
                 </div>
 
                 {/* Decorative Book Icon */}
@@ -109,7 +114,6 @@ const Banner = () => {
                     />
                   </div>
                 </div>
-
               </CardContent>
             </Card>
           </SwiperSlide>
