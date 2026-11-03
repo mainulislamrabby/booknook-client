@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { authClient } from "@/lib/auth-client";
 import {
   BookOpen,
   UserRound,
@@ -37,11 +38,13 @@ const initialFormData: BookFormData = {
   category: "",
   image: "",
   description: "",
-  userName: "Your Name",
-  email: "your@email.com",
+  userName: "",
+  email: "",
 };
 
 const AddBooks = () => {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
 
   const [formData, setFormData] = useState<BookFormData>(initialFormData);
 
@@ -55,34 +58,55 @@ const AddBooks = () => {
       [name]: value,
     }));
   };
-
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!user) {
+      toast.add({
+        title: "Please log in",
+        description: "You need to log in before adding a book.",
+        type: "error",
+      });
+      return;
+    }
+
+    const newBook = {
+      ...formData,
+      userName: user.name || "",
+      email: user.email,
+      addedDate: new Date().toISOString(),
+    };
+
     const res = await fetch("http://localhost:5000/add-book", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify(newBook),
     });
 
     const data = await res.json();
 
-    console.log(data);
-
-    const newBook = {
-      ...formData,
-      addedDate: new Date().toISOString(),
-    };
-
-    console.log("New Book:", newBook);
+    if (!res.ok) {
+      toast.add({
+        title: "Failed to add book",
+        description: data.message || "Something went wrong.",
+        type: "error",
+      });
+      return;
+    }
 
     toast.add({
       title: "Book added successfully!",
       description: `${formData.title} has been added to BookNook.`,
+      type: "success",
     });
 
-    setFormData(initialFormData);
+    setFormData({
+      ...initialFormData,
+      userName: user.name || "",
+      email: user.email,
+    });
   };
 
   return (
