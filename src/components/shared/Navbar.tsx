@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Menu } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { BookOpen, Menu, LogOut, UserRound, ChevronDown } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 
@@ -19,19 +18,41 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useRouter } from "next/navigation";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { authClient } from "@/lib/auth-client";
 
 const navLinks = [
   { name: "Home", href: "/" },
   { name: "All Books", href: "/books" },
+];
+
+const privateLinks = [
   { name: "Add Book", href: "/add-book" },
   { name: "My Books", href: "/my-books" },
   { name: "My Borrows", href: "/my-borrows" },
 ];
 
 const Navbar = () => {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
   const pathname = usePathname();
   const router = useRouter();
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    router.push("/");
+    router.refresh();
+  };
+
+  const visibleLinks = user ? [...navLinks, ...privateLinks] : navLinks;
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white shadow-sm">
@@ -41,48 +62,113 @@ const Navbar = () => {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-white">
             <BookOpen size={24} />
           </div>
-
           <span className="text-2xl font-bold text-green-800">BookNook</span>
         </Link>
 
         {/* Desktop Navigation */}
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList className="gap-2">
-            {navLinks.map((link) => (
+            {visibleLinks.map((link) => (
               <NavigationMenuItem key={link.href}>
-                <NavigationMenuLink>
-                  <Link
-                    href={link.href}
-                    className={`px-3 py-2 text-sm font-medium transition-colors ${
-                      pathname === link.href
-                        ? "bg-green-50 text-green-800"
-                        : "text-gray-600 hover:bg-green-50 hover:text-green-800"
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                </NavigationMenuLink>
+                <Link
+                  href={link.href}
+                  className={`px-3 py-2 text-sm font-medium transition-colors ${
+                    pathname === link.href
+                      ? "bg-green-50 text-green-800"
+                      : "text-gray-600 hover:bg-green-50 hover:text-green-800"
+                  }`}
+                >
+                  {link.name}
+                </Link>
               </NavigationMenuItem>
             ))}
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Login & Register */}
+        {/* Authentication */}
         <div className="hidden items-center gap-3 md:flex">
-          <Button
-            onClick={() => router.push("/login")}
-            variant="outline"
-            className="border-green-700 text-green-700 hover:bg-green-50"
-          >
-            <Link href="/login">Login</Link>
-          </Button>
+          {user ? (
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <Button variant="ghost" className="flex items-center gap-2">
+                    <Avatar className="h-9 w-9 py-5">
+                      <AvatarImage
+                        src={user.image || ""}
+                        alt={user.name}
+                        referrerPolicy="no-referrer"
+                      />
+                      <AvatarFallback>
+                        {user.name?.charAt(0).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <ChevronDown size={16} />
+                  </Button>
+                }
+              />
 
-          <Button
-            onClick={() => router.push("/signup")}
-            className="bg-green-700 text-white hover:bg-green-800"
-          >
-            <Link href="/signup">Register</Link>
-          </Button>
+              <PopoverContent align="end" className="w-60 p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src={user.image || ""}
+                      alt={user.name}
+                      referrerPolicy="no-referrer"
+                    />
+                    <AvatarFallback>
+                      {user.name?.charAt(0).toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-green-800">
+                      {user.name}
+                    </p>
+                    <p className="truncate text-xs text-gray-500">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="my-3 border-t" />
+
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => router.push("/my-profile")}
+                >
+                  <UserRound className="mr-2 h-4 w-4" />
+                  My Profile
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <>
+              <Button
+                onClick={() => router.push("/login")}
+                variant="outline"
+                className="border-green-700 text-green-700 hover:bg-green-50"
+              >
+                Login
+              </Button>
+
+              <Button
+                onClick={() => router.push("/signup")}
+                className="bg-green-700 text-white hover:bg-green-800"
+              >
+                Register
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile Navigation */}
@@ -106,7 +192,7 @@ const Navbar = () => {
             </SheetHeader>
 
             <div className="mt-6 flex flex-col gap-3 px-4">
-              {navLinks.map((link) => (
+              {visibleLinks.map((link) => (
                 <Button
                   key={link.href}
                   onClick={() => router.push(link.href)}
@@ -117,25 +203,61 @@ const Navbar = () => {
                       : "text-gray-600"
                   }`}
                 >
-                  <Link href={link.href}>{link.name}</Link>
+                  {link.name}
                 </Button>
               ))}
 
               <div className="mt-4 flex flex-col gap-3 border-t pt-4">
-                <Button
-                  onClick={() => router.push("/login")}
-                  variant="outline"
-                  className="border-green-700 text-green-700"
-                >
-                  <Link href="/login">Login</Link>
-                </Button>
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.image || ""} alt={user.name} />
+                        <AvatarFallback>
+                          {user.name?.charAt(0).toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium text-green-800">
+                        {user.name}
+                      </span>
+                    </div>
 
-                <Button
-                  onClick={() => router.push("/signup")}
-                  className="bg-green-700 text-white hover:bg-green-800"
-                >
-                  <Link href="/signup">Register</Link>
-                </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => router.push("/my-profile")}
+                    >
+                      <UserRound className="mr-2 h-4 w-4" />
+                      My Profile
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="justify-start border-red-600 text-red-600"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => router.push("/login")}
+                      variant="outline"
+                      className="border-green-700 text-green-700"
+                    >
+                      Login
+                    </Button>
+
+                    <Button
+                      onClick={() => router.push("/signup")}
+                      className="bg-green-700 text-white hover:bg-green-800"
+                    >
+                      Register
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </SheetContent>
