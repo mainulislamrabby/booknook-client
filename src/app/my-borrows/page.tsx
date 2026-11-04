@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "@/components/ui/toast";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -15,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import ReturnBookButton from "@/components/borrows/ReturnBookButton";
 
 interface Borrow {
   _id: string;
@@ -33,13 +33,10 @@ const MyBorrows = () => {
 
   const [borrows, setBorrows] = useState<Borrow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [returningId, setReturningId] = useState<string | null>(null);
 
+  // Fetch logged-in user's borrowed books
   useEffect(() => {
-    if (!user?.email) {
-      if (!isPending) setLoading(false);
-      return;
-    }
+    if (!user?.email) return;
 
     const fetchBorrows = async () => {
       try {
@@ -58,6 +55,7 @@ const MyBorrows = () => {
         setBorrows(data);
       } catch (error) {
         console.error(error);
+
         toast.add({
           title: "Error",
           description: "Could not load your borrowed books.",
@@ -69,46 +67,18 @@ const MyBorrows = () => {
     };
 
     fetchBorrows();
-  }, [user?.email, isPending]);
+  }, [user?.email]);
 
-  const handleReturnBook = async (borrowId: string) => {
-    try {
-      setReturningId(borrowId);
-
-      const res = await fetch(`http://localhost:5000/return-book/${borrowId}`, {
-        method: "PATCH",
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to return book.");
-      }
-
-      setBorrows((prev) =>
-        prev.map((borrow) =>
-          borrow._id === borrowId ? { ...borrow, status: "returned" } : borrow,
-        ),
-      );
-
-      toast.add({
-        title: "Book returned!",
-        description: "The book has been successfully returned.",
-        type: "success",
-      });
-    } catch (error) {
-      toast.add({
-        title: "Return failed",
-        description:
-          error instanceof Error ? error.message : "Something went wrong.",
-        type: "error",
-      });
-    } finally {
-      setReturningId(null);
-    }
+  // Update book status after returning
+  const handleBookReturned = (borrowId: string) => {
+    setBorrows((prev) =>
+      prev.map((borrow) =>
+        borrow._id === borrowId ? { ...borrow, status: "returned" } : borrow,
+      ),
+    );
   };
 
-  if (isPending || loading) {
+  if (isPending || (user && loading)) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <p className="text-muted-foreground">Loading your borrowed books...</p>
@@ -138,6 +108,7 @@ const MyBorrows = () => {
           <CardTitle className="text-2xl font-bold">
             My Borrowed Books
           </CardTitle>
+
           <p className="text-sm text-muted-foreground">
             View and manage the books you have borrowed.
           </p>
@@ -147,6 +118,7 @@ const MyBorrows = () => {
           {borrows.length === 0 ? (
             <div className="py-12 text-center">
               <p className="text-lg font-medium">No borrowed books yet.</p>
+
               <p className="mt-2 text-sm text-muted-foreground">
                 Books you borrow will appear here.
               </p>
@@ -207,21 +179,11 @@ const MyBorrows = () => {
                       </TableCell>
 
                       <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={
-                            borrow.status === "returned" ||
-                            returningId === borrow._id
-                          }
-                          onClick={() => handleReturnBook(borrow._id)}
-                        >
-                          {returningId === borrow._id
-                            ? "Returning..."
-                            : borrow.status === "returned"
-                              ? "Returned"
-                              : "Return Book"}
-                        </Button>
+                        <ReturnBookButton
+                          borrowId={borrow._id}
+                          status={borrow.status}
+                          onReturned={handleBookReturned}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

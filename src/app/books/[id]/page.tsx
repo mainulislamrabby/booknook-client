@@ -2,8 +2,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import BorrowBookCard from "@/components/books/BorrowBookCard";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getTokenFromServer } from "@/lib/getTokenFromServer";
 
 interface Book {
   _id: string;
@@ -23,11 +22,7 @@ interface BookDetailsProps {
 
 const BookDetails = async ({ params }: BookDetailsProps) => {
   const { id } = await params;
-  const jwtToken = await auth.api.getToken({
-    headers: await headers(),
-  });
-  const token = jwtToken?.token;
-  console.log(token);
+  const token = await getTokenFromServer();
   const res = await fetch(`http://localhost:5000/book/${id}`, {
     cache: "no-store",
     headers: {

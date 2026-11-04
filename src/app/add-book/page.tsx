@@ -31,6 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
 import { BookFormData } from "@/types/bookDataTypes";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 const initialFormData: BookFormData = {
   title: "",
@@ -69,17 +70,7 @@ const AddBooks = () => {
       });
       return;
     }
-
-    const { data, error } = await authClient.token();
-
-    if (error || !data?.token) {
-      toast.add({
-        title: "Authentication failed",
-        description: "Could not generate JWT token.",
-        type: "error",
-      });
-      return;
-    }
+    const token = await getTokenFromClient();
 
     const newBook = {
       ...formData,
@@ -92,7 +83,7 @@ const AddBooks = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${data.token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(newBook),
     });
