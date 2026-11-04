@@ -70,6 +70,17 @@ const AddBooks = () => {
       return;
     }
 
+    const { data, error } = await authClient.token();
+
+    if (error || !data?.token) {
+      toast.add({
+        title: "Authentication failed",
+        description: "Could not generate JWT token.",
+        type: "error",
+      });
+      return;
+    }
+
     const newBook = {
       ...formData,
       userName: user.name || "",
@@ -81,16 +92,17 @@ const AddBooks = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${data.token}`,
       },
       body: JSON.stringify(newBook),
     });
 
-    const data = await res.json();
+    const result = await res.json();
 
     if (!res.ok) {
       toast.add({
         title: "Failed to add book",
-        description: data.message || "Something went wrong.",
+        description: result.message || "Something went wrong.",
         type: "error",
       });
       return;
@@ -102,11 +114,7 @@ const AddBooks = () => {
       type: "success",
     });
 
-    setFormData({
-      ...initialFormData,
-      userName: user.name || "",
-      email: user.email,
-    });
+    setFormData(initialFormData);
   };
 
   return (
