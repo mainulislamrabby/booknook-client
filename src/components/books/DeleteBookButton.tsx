@@ -32,7 +32,7 @@ const DeleteBookButton = ({
     try {
       setDeleting(true);
 
-      const res = await fetch(`http://localhost:5000/book/${bookId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/book/${bookId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

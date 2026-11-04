@@ -23,7 +23,7 @@ const ReturnBookButton = ({
       setReturning(true);
 
       const res = await fetch(
-        `http://localhost:5000/return-book/${borrowId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/return-book/${borrowId}`,
         {
           method: "PATCH",
         }

@@ -47,7 +47,7 @@ const MyBooks = () => {
         setLoading(true);
 
         const res = await fetch(
-          `http://localhost:5000/my-books/${user.email}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/my-books/${user.email}`,
           { cache: "no-store" },
         );
 

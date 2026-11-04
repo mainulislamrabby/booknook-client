@@ -39,7 +39,6 @@ const LogIn = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Authentication will be connected here.
       const fromData = new FormData(e.target);
       const user = Object.fromEntries(fromData.entries()) as {
         email: string;

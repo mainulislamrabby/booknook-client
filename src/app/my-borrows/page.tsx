@@ -43,7 +43,7 @@ const MyBorrows = () => {
         setLoading(true);
 
         const res = await fetch(
-          `http://localhost:5000/my-borrows/${user.email}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/my-borrows/${user.email}`,
           { cache: "no-store" },
         );
 
