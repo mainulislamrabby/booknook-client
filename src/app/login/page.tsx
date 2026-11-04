@@ -49,11 +49,6 @@ const LogIn = () => {
         ...user,
       });
       if (data) {
-        toast.add({
-          title: "Authentication not connected",
-          description: "Connect your authentication system to enable login.",
-          type: "error",
-        });
         redirect("/");
       }
       if (error) {
