@@ -27,6 +27,9 @@ const BookDetails = async ({ params }: BookDetailsProps) => {
 
   const res = await fetch(`http://localhost:5000/book/${id}`, {
     cache: "no-store",
+    headers: {
+      authorization: `Bearer user log in`,
+    }
   });
 
   if (res.status === 404) {
