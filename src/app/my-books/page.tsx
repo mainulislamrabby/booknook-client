@@ -5,9 +5,6 @@ import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "@/components/ui/toast";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,14 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
+import EditBookButton from "@/components/books/EditBookButton";
+import DeleteBookButton from "@/components/books/DeleteBookButton";
 
 interface Book {
   _id: string;
@@ -45,20 +37,6 @@ const MyBooks = () => {
 
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<"edit" | "delete">("edit");
-
-  const [formData, setFormData] = useState({
-    title: "",
-    author: "",
-    category: "",
-    image: "",
-    description: "",
-  });
-
-  const [saving, setSaving] = useState(false);
 
   // Fetch logged-in user's books
   useEffect(() => {
@@ -81,6 +59,7 @@ const MyBooks = () => {
         setBooks(data);
       } catch (error) {
         console.error(error);
+
         toast.add({
           title: "Error",
           description: "Could not load your books.",
@@ -92,133 +71,21 @@ const MyBooks = () => {
     };
 
     fetchMyBooks();
-  }, [user?.email, isPending]);
+  }, [user?.email]);
 
-  // Open edit dialog
-  const handleEdit = (book: Book) => {
-    setSelectedBook(book);
-    setFormData({
-      title: book.title,
-      author: book.author,
-      category: book.category,
-      image: book.image,
-      description: book.description,
-    });
-    setDialogType("edit");
-    setDialogOpen(true);
+  // Update book in the UI
+  const handleBookUpdated = (updatedBook: Book) => {
+    setBooks((prev) =>
+      prev.map((book) => (book._id === updatedBook._id ? updatedBook : book)),
+    );
   };
 
-  // Open delete confirmation dialog
-  const handleDeleteClick = (book: Book) => {
-    setSelectedBook(book);
-    setDialogType("delete");
-    setDialogOpen(true);
+  // Remove deleted book from the UI
+  const handleBookDeleted = (bookId: string) => {
+    setBooks((prev) => prev.filter((book) => book._id !== bookId));
   };
 
-  // Update book
-  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!selectedBook || !user?.email) return;
-
-    try {
-      setSaving(true);
-
-      const res = await fetch(
-        `http://localhost:5000/book/${selectedBook._id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...formData,
-            email: user.email,
-          }),
-        },
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to update book.");
-      }
-
-      setBooks((prev) =>
-        prev.map((book) =>
-          book._id === selectedBook._id ? { ...book, ...formData } : book,
-        ),
-      );
-
-      setDialogOpen(false);
-      setSelectedBook(null);
-
-      toast.add({
-        title: "Book updated!",
-        description: "Your book details have been updated successfully.",
-        type: "success",
-      });
-    } catch (error) {
-      toast.add({
-        title: "Update failed",
-        description:
-          error instanceof Error ? error.message : "Something went wrong.",
-        type: "error",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Delete book
-  const handleDelete = async () => {
-    if (!selectedBook || !user?.email) return;
-
-    try {
-      setSaving(true);
-
-      const res = await fetch(
-        `http://localhost:5000/book/${selectedBook._id}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: user.email,
-          }),
-        },
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to delete book.");
-      }
-
-      setBooks((prev) => prev.filter((book) => book._id !== selectedBook._id));
-
-      setDialogOpen(false);
-      setSelectedBook(null);
-
-      toast.add({
-        title: "Book deleted!",
-        description: "Your book has been deleted successfully.",
-        type: "success",
-      });
-    } catch (error) {
-      toast.add({
-        title: "Delete failed",
-        description:
-          error instanceof Error ? error.message : "Something went wrong.",
-        type: "error",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (isPending || loading) {
+  if (isPending || (user && loading)) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <p className="text-muted-foreground">Loading your books...</p>
@@ -246,6 +113,7 @@ const MyBooks = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">My Books</CardTitle>
+
           <p className="text-sm text-muted-foreground">
             Manage the books you have added to BookNook.
           </p>
@@ -257,6 +125,7 @@ const MyBooks = () => {
               <h3 className="text-lg font-semibold">
                 You haven&apos;t added any books yet.
               </h3>
+
               <p className="mt-2 text-sm text-muted-foreground">
                 Your added books will appear here.
               </p>
@@ -306,21 +175,18 @@ const MyBooks = () => {
 
                       <TableCell>
                         <div className="flex justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEdit(book)}
-                          >
-                            Edit
-                          </Button>
+                          <EditBookButton
+                            book={book}
+                            email={user.email}
+                            onUpdated={handleBookUpdated}
+                          />
 
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteClick(book)}
-                          >
-                            Delete
-                          </Button>
+                          <DeleteBookButton
+                            bookId={book._id}
+                            bookTitle={book.title}
+                            email={user.email}
+                            onDeleted={handleBookDeleted}
+                          />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -331,141 +197,6 @@ const MyBooks = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Edit and Delete Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-          {dialogType === "edit" ? (
-            <>
-              <DialogHeader>
-                <DialogTitle>Edit Book</DialogTitle>
-                <DialogDescription>
-                  Update your book information below.
-                </DialogDescription>
-              </DialogHeader>
-
-              <form onSubmit={handleUpdate} className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="title" className="text-sm font-medium">
-                    Book Title
-                  </label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="author" className="text-sm font-medium">
-                    Author
-                  </label>
-                  <Input
-                    id="author"
-                    value={formData.author}
-                    onChange={(e) =>
-                      setFormData({ ...formData, author: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="category" className="text-sm font-medium">
-                    Category
-                  </label>
-                  <Input
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) =>
-                      setFormData({ ...formData, category: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="image" className="text-sm font-medium">
-                    Image URL
-                  </label>
-                  <Input
-                    id="image"
-                    type="url"
-                    value={formData.image}
-                    onChange={(e) =>
-                      setFormData({ ...formData, image: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="description" className="text-sm font-medium">
-                    Description
-                  </label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        description: e.target.value,
-                      })
-                    }
-                    rows={4}
-                    required
-                  />
-                </div>
-
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setDialogOpen(false)}
-                    disabled={saving}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={saving}>
-                    {saving ? "Saving..." : "Save Changes"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </>
-          ) : (
-            <>
-              <DialogHeader>
-                <DialogTitle>Delete Book?</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to delete{" "}
-                  <strong>{selectedBook?.title}</strong>? This action cannot be
-                  undone.
-                </DialogDescription>
-              </DialogHeader>
-
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={saving}
-                >
-                  {saving ? "Deleting..." : "Yes, Delete"}
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
