@@ -92,7 +92,7 @@ const Navbar = () => {
               <PopoverTrigger
                 render={
                   <Button variant="ghost" className="flex items-center gap-2">
-                    <Avatar className="h-9 w-9 py-5">
+                    <Avatar className="h-9 w-9">
                       <AvatarImage
                         src={user.image || ""}
                         alt={user.name}
