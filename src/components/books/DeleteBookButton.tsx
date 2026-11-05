@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 interface DeleteBookButtonProps {
   bookId: string;
@@ -31,11 +32,12 @@ const DeleteBookButton = ({
   const handleDelete = async () => {
     try {
       setDeleting(true);
-
+      const token = await getTokenFromClient();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/book/${bookId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ email }),
       });

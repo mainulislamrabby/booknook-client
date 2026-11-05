@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import ReturnBookButton from "@/components/borrows/ReturnBookButton";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 interface Borrow {
   _id: string;
@@ -41,10 +42,15 @@ const MyBorrows = () => {
     const fetchBorrows = async () => {
       try {
         setLoading(true);
-
+        const token = await getTokenFromClient();
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/my-borrows/${user.email}`,
-          { cache: "no-store" },
+          {
+            cache: "no-store",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
 
         if (!res.ok) {

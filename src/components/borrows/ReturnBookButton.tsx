@@ -1,9 +1,9 @@
-
 "use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 interface ReturnBookButtonProps {
   borrowId: string;
@@ -21,12 +21,15 @@ const ReturnBookButton = ({
   const handleReturn = async () => {
     try {
       setReturning(true);
-
+      const token = await getTokenFromClient();
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/return-book/${borrowId}`,
         {
           method: "PATCH",
-        }
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        },
       );
 
       const data = await res.json();
@@ -46,9 +49,7 @@ const ReturnBookButton = ({
       toast.add({
         title: "Return failed",
         description:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong.",
+          error instanceof Error ? error.message : "Something went wrong.",
         type: "error",
       });
     } finally {

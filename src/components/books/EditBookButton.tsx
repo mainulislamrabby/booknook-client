@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 interface Book {
   _id: string;
@@ -60,11 +61,12 @@ const EditBookButton = ({ book, email, onUpdated }: EditBookButtonProps) => {
 
     try {
       setSaving(true);
-
+      const token = await getTokenFromClient();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/book/${book._id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...formData,
