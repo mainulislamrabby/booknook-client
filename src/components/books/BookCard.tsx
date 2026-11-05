@@ -44,10 +44,11 @@ const BookCard = ({ book }: BookCardProps) => {
             {book.author}
           </p>
         </div>
-
-        <Button className="w-full bg-green-700 hover:bg-green-800">
-          <Link href={`/books/${book._id}`}>View Details</Link>
-        </Button>
+        <Link href={`/books/${book._id}`}>
+          <Button className="cursor-pointer w-full bg-green-700 hover:bg-green-800">
+            View Details
+          </Button>
+        </Link>
       </CardContent>
     </Card>
   );

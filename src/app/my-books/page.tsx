@@ -18,6 +18,7 @@ import {
 
 import EditBookButton from "@/components/books/EditBookButton";
 import DeleteBookButton from "@/components/books/DeleteBookButton";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 interface Book {
   _id: string;
@@ -45,10 +46,15 @@ const MyBooks = () => {
     const fetchMyBooks = async () => {
       try {
         setLoading(true);
-
+        const token = await getTokenFromClient();
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/my-books/${user.email}`,
-          { cache: "no-store" },
+          {
+            cache: "no-store",
+            headers: {
+              authorization: `Bearer ${token}`,
+            },
+          },
         );
 
         if (!res.ok) {
