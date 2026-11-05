@@ -81,7 +81,7 @@ const BookCategories = () => {
             variant="outline"
             className="border-green-700 text-green-800 hover:bg-green-100"
           >
-            <Link className="flex items-center" href="/all-books">
+            <Link className="flex items-center" href="/books">
               View All Books
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
@@ -114,7 +114,7 @@ const BookCategories = () => {
                     </p>
 
                     <Link
-                      href={`/all-books?category=${category.name.toLowerCase()}`}
+                      href={`/books?category=${category.name.toLowerCase()}`}
                       className="mt-3 inline-flex items-center text-sm font-semibold text-green-700 hover:text-green-900"
                     >
                       Explore
