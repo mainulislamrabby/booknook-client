@@ -3,7 +3,11 @@ import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import BorrowBookCard from "@/components/books/BorrowBookCard";
 import { getTokenFromServer } from "@/lib/getTokenFromServer";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "BookNook | Book Details",
+};
 interface Book {
   _id: string;
   title: string;

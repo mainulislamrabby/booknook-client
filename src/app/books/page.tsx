@@ -1,3 +1,8 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "BookNook | All Books",
+};
 import BookCard from "@/components/books/BookCard";
 import type { Book } from "@/types/bookDataTypes";
 import { BookOpen } from "lucide-react";
