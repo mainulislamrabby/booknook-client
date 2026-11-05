@@ -18,6 +18,7 @@ interface Book {
   userName: string;
   email: string;
   addedDate: string;
+  totalCopies: number;
 }
 
 interface BookDetailsProps {

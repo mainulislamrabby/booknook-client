@@ -48,6 +48,7 @@ const BorrowBookCard = ({ book }: BorrowBookCardProps) => {
 
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [availableCopies, setAvailableCopies] = useState(book.totalCopies ?? 0);
 
   const handleBorrow = async () => {
     if (!user) {
@@ -91,6 +92,9 @@ const BorrowBookCard = ({ book }: BorrowBookCardProps) => {
         description: "You can view this book in My Borrows.",
         type: "success",
       });
+
+      setAvailableCopies((prev) => prev - 1);
+      setOpen(false);
 
       setOpen(false);
     } catch (error) {
@@ -138,6 +142,14 @@ const BorrowBookCard = ({ book }: BorrowBookCardProps) => {
           </p>
         </div>
 
+        <div className="rounded-lg border border-green-100 bg-green-50 p-4">
+          <p className="text-sm text-green-800">Available Copies</p>
+
+          <p className="mt-1 text-2xl font-bold text-green-900">
+            {availableCopies}
+          </p>
+        </div>
+
         <Separator />
 
         <div>
@@ -168,10 +180,10 @@ const BorrowBookCard = ({ book }: BorrowBookCardProps) => {
         <DialogTrigger
           render={
             <Button
-              disabled={!user || book.totalCopies === 0}
+              disabled={!user || availableCopies === 0}
               className="mt-8 h-12 w-full bg-green-700 text-base font-semibold hover:bg-green-800"
             >
-              {book.totalCopies === 0 ? "Not Available" : "Borrow This Book"}
+              {availableCopies === 0 ? "Not Available" : "Borrow This Book"}
             </Button>
           }
         />
