@@ -41,6 +41,7 @@ const initialFormData: BookFormData = {
   description: "",
   userName: "",
   email: "",
+  totalCopies: 1,
 };
 
 const AddBooks = () => {
@@ -56,9 +57,10 @@ const AddBooks = () => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "totalCopies" ? Number(value) : value,
     }));
   };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -191,6 +193,22 @@ const AddBooks = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* Total Copies */}
+              <div className="space-y-2">
+                <Label htmlFor="totalCopies">Total Copies</Label>
+
+                <Input
+                  id="totalCopies"
+                  name="totalCopies"
+                  type="number"
+                  min="1"
+                  value={formData.totalCopies}
+                  onChange={handleChange}
+                  required
+                  className="focus-visible:ring-green-600"
+                />
               </div>
 
               {/* Book Image URL */}

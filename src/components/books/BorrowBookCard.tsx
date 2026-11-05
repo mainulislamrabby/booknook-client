@@ -1,12 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  BookOpen,
-  UserRound,
-  Mail,
-  CalendarDays,
-} from "lucide-react";
+import { BookOpen, UserRound, Mail, CalendarDays } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "@/components/ui/toast";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 interface BorrowBookCardProps {
   book: {
@@ -42,6 +38,7 @@ interface BorrowBookCardProps {
     userName: string;
     email: string;
     addedDate?: string;
+    totalCopies: number;
   };
 }
 
@@ -65,18 +62,23 @@ const BorrowBookCard = ({ book }: BorrowBookCardProps) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/borrow-book`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const token = await getTokenFromClient();
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/borrow-book`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            bookId: book._id,
+            bookTitle: book.title,
+            bookImage: book.image,
+            userEmail: user.email,
+          }),
         },
-        body: JSON.stringify({
-          bookId: book._id,
-          bookTitle: book.title,
-          bookImage: book.image,
-          userEmail: user.email,
-        }),
-      });
+      );
 
       const result = await response.json();
 
@@ -166,10 +168,10 @@ const BorrowBookCard = ({ book }: BorrowBookCardProps) => {
         <DialogTrigger
           render={
             <Button
-              disabled={!user}
+              disabled={!user || book.totalCopies === 0}
               className="mt-8 h-12 w-full bg-green-700 text-base font-semibold hover:bg-green-800"
             >
-              Borrow This Book
+              {book.totalCopies === 0 ? "Not Available" : "Borrow This Book"}
             </Button>
           }
         />
@@ -187,20 +189,12 @@ const BorrowBookCard = ({ book }: BorrowBookCardProps) => {
           <div className="space-y-4 py-3">
             <div className="space-y-2">
               <Label htmlFor="borrow-name">User Name</Label>
-              <Input
-                id="borrow-name"
-                value={user?.name || ""}
-                readOnly
-              />
+              <Input id="borrow-name" value={user?.name || ""} readOnly />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="borrow-email">Email Address</Label>
-              <Input
-                id="borrow-email"
-                value={user?.email || ""}
-                readOnly
-              />
+              <Input id="borrow-email" value={user?.email || ""} readOnly />
             </div>
           </div>
 

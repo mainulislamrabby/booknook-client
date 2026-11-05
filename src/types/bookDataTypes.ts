@@ -6,6 +6,7 @@ export interface BookFormData {
   description: string;
   userName: string;
   email: string;
+  totalCopies: number;
 }
 
 export interface Book {
@@ -18,4 +19,5 @@ export interface Book {
   userName: string;
   email: string;
   addedDate: string;
+  totalCopies: number;
 }
